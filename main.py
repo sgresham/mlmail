@@ -1,4 +1,4 @@
-)impot pandas as pd
+import pandas as pd
 import torch
 import time
 import numpy as np
@@ -25,7 +25,7 @@ class CustomDatasetFull(Dataset):
         self.category = dataframe["category"]
         self.catcode = dataframe["catcode"]
     def __len__(self):
-        return len(self.text)
+        return len(self.subject)
     def __getitem__(self, idx):
         authors = self.authors.iloc[idx]
         subject = self.subject.iloc[idx]
@@ -40,7 +40,7 @@ class CustomDatasetMin(Dataset):
         self.category = dataframe["category"]
         self.catcode = dataframe["catcode"]
     def __len__(self):
-        return len(self.text)
+        return len(self.subject)
     def __getitem__(self, idx):
         authors = self.authors.iloc[idx]
         subject = self.subject.iloc[idx]
@@ -64,7 +64,7 @@ def yield_tokens(data):
 vocab = build_vocab_from_iterator(yield_tokens(prepped), specials=["<unk>"])
 vocab.set_default_index(vocab["<unk>"])
 subject_pipeline = lambda x: vocab(tokenizer(x))
-authors_pipeline = lambda x: int(x) - 1
+authors_pipeline = lambda x: int(x)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -77,7 +77,7 @@ def collate_batch(batch):
         offsets.append(processed_subject.size(0))
     authors_list = torch.tensor(authors_list, dtype=torch.int64)
     offsets = torch.tensor(offsets[:-1]).cumsum(dim=0)
-    #authors_list = torch.cat(authors_list)
+    subject_list = torch.cat(subject_list)
     return authors_list.to(device), subject_list.to(device), offsets.to(device)
 
 #dataloaderdemo = DataLoader(train_iter, batch_size=8, shuffle=False, collate_fn=collate_batch)
@@ -173,4 +173,4 @@ for epoch in range(1, EPOCHS + 1):
           'valid accuracy {:8.3f} '.format(epoch,
                                            time.time() - epoch_start_time,
                                            accu_val))
-    print('-' * 59)r
+    print('-' * 59)
